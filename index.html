@@ -2,37 +2,289 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>White Hat vs. Black Hat Visualization</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>White Hat, Black Hat: NYPD Civilian Complaints</title>
+  <meta name="description" content="One dataset of NYPD civilian complaints, visualized twice: once honestly, once to mislead.">
   <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 </head>
 <body>
-  <header>
-    <h1>White Hat vs. Black Hat: NYPD Civilian Complaints</h1>
-    <p>Same dataset, two very different stories.</p>
-  </header>
 
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Assignment 2 · Visualization ethics</p>
+    <h1>White Hat, Black Hat: NYPD Civilian Complaints</h1>
+    <p class="lede">The same slice of data, shown twice. One chart tries to inform. The other tries to persuade, and shows you exactly how.</p>
+    <nav aria-label="Sections">
+      <ul>
+        <li><a href="#data">The data</a></li>
+        <li><a href="#whitehat">White hat</a></li>
+        <li><a href="#blackhat">Black hat</a></li>
+        <li><a href="#references">References</a></li>
+        <li><a href="#process">Process</a></li>
+        <li><a href="#ai">AI usage</a></li>
+        <li><a href="#extra">Extra credit</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div id="load-error" class="error" role="alert" hidden></div>
+
+  <section id="data" class="prose">
+    <h2>The data</h2>
+    <p>
+      We used ProPublica’s database of civilian complaints against NYPD officers, built from records of the
+      city’s Civilian Complaint Review Board (CCRB). Each row is one <strong>allegation</strong> against one officer,
+      not one complaint, and a single complaint can contain several allegations.
+      Our file has <strong><span data-stat="allegations">…</span> allegations</strong> from
+      <strong><span data-stat="complaints">…</span> complaints</strong> involving
+      <strong><span data-stat="officers">…</span> officers</strong>.
+    </p>
+    <div class="callout">
+      <p>
+        <strong>Read this before the charts.</strong> Our copy is a <em>subset</em> of the full database. It appears to be the
+        first rows of the file when it is grouped by each officer’s current command, so it is dominated by a handful of
+        mostly Brooklyn precincts and detective squads. It is not a random sample. Every percentage on this page describes
+        this subset only and should not be read as an NYPD-wide figure. One final row of our copy was cut off and was dropped.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================ WHITE HAT ============================ -->
   <section id="whitehat">
-    <h2>White Hat Visualization</h2>
-    <div id="chart-white"></div>
-    <p>Write-up: dataset, design choices, how it ensures clarity and accuracy (200–500 words).</p>
+    <h2>White hat visualization <span class="badge white">Clear · transparent · sourced</span></h2>
+    <p>How did the review board resolve these allegations, and how much can we trust the trends?</p>
+
+    <article class="card" aria-labelledby="wh-a-title">
+      <h3 id="wh-a-title">How each type of allegation was resolved</h3>
+      <p class="sub">Every bar is 100% of that type’s allegations. The number of allegations behind each bar is printed beside its name.</p>
+      <ul class="legend" aria-label="Legend">
+        <li><span class="swatch" style="background:var(--s1)"></span>Substantiated</li>
+        <li><span class="swatch" style="background:var(--s2)"></span>Unsubstantiated</li>
+        <li><span class="swatch" style="background:var(--s3)"></span>Exonerated</li>
+      </ul>
+      <svg id="wh-a" class="chart" role="img" aria-labelledby="wh-a-title wh-a-desc"></svg>
+      <p id="wh-a-desc" class="sr-only">Stacked bars showing, for four allegation types, the share substantiated, unsubstantiated and exonerated. A data table follows.</p>
+      <p class="foot">
+        <strong>Substantiated:</strong> the board found the conduct broke the rules.
+        <strong>Unsubstantiated:</strong> not enough evidence either way.
+        <strong>Exonerated:</strong> the conduct happened but was within the rules.
+        Source: ProPublica / CCRB, subset described above.
+      </p>
+      <button class="table-toggle" id="wh-a-btn" aria-expanded="false" aria-controls="wh-a-table">View as data table</button>
+      <div class="table-wrap" id="wh-a-table" hidden></div>
+    </article>
+
+    <article class="card" aria-labelledby="wh-b-title">
+      <h3 id="wh-b-title">Share of allegations substantiated, by year the case was closed</h3>
+      <p class="sub">
+        Each dot is one year; the whisker is a 95% interval showing how uncertain that year’s rate is.
+        <span style="white-space:nowrap"><span class="key-dot hollow" aria-hidden="true"></span> Hollow dot: fewer than 20 allegations that year.</span>
+        The grey bars underneath show how many allegations each year rests on.
+      </p>
+      <svg id="wh-b" class="chart" role="img" aria-labelledby="wh-b-title wh-b-desc"></svg>
+      <p id="wh-b-desc" class="sr-only">Dot and whisker chart of the yearly substantiation rate from 2002 to 2020 with a strip chart of sample sizes beneath. A data table follows.</p>
+      <p class="foot">
+        Years 2002–2020 shown; two allegations closed in 1997 and 2000 are left out because one case cannot form a rate.
+        2020 is a partial year (cases closed through June). The wide whiskers in early years are real: few cases, so little certainty.
+      </p>
+      <button class="table-toggle" id="wh-b-btn" aria-expanded="false" aria-controls="wh-b-table">View as data table</button>
+      <div class="table-wrap" id="wh-b-table" hidden></div>
+    </article>
+
+    <article class="card" aria-labelledby="wh-c-title">
+      <h3 id="wh-c-title">What “substantiated” actually led to</h3>
+      <p class="sub">Substantiated allegations only, grouped by the outcome recorded with the finding.</p>
+      <svg id="wh-c" class="chart" role="img" aria-labelledby="wh-c-title wh-c-desc"></svg>
+      <p id="wh-c-desc" class="sr-only">Horizontal bars counting substantiated allegations by outcome: charges, command discipline, formalized training, instructions. A data table follows.</p>
+      <button class="table-toggle" id="wh-c-btn" aria-expanded="false" aria-controls="wh-c-table">View as data table</button>
+      <div class="table-wrap" id="wh-c-table" hidden></div>
+    </article>
+
+    <div class="prose">
+      <h3>Write-up: white hat</h3>
+      <p>
+        <strong>Dataset.</strong> ProPublica’s NYPD civilian complaints database, from CCRB records. Each row is an allegation
+        (<span data-stat="allegations">…</span> in our subset), classified into four CCRB types (Force, Abuse of Authority,
+        Discourtesy, Offensive Language) and ending in a board finding. Because our file is a non-random subset concentrated in a few
+        Brooklyn commands, we say so above the charts and never describe the numbers as citywide.
+      </p>
+      <p>
+        <strong>Design choices.</strong> View A uses 100% bars so allegation types of very different size can be compared as shares,
+        with each type’s <em>n</em> printed next to it so a 17% from 23 allegations is not mistaken for a 14% from 166.
+        The three findings keep the same order and colour in every segment, are named in a legend, and are labelled directly on the bars
+        where they fit. View B shows the yearly rate with 95% Wilson intervals, hollow dots for small years, and a sample-size strip,
+        because many years rest on very few allegations. View C answers a question the headline number invites: “substantiated” does
+        not always mean formal charges. Only <span data-stat="charges_pct">…</span> of substantiated allegations ended in charges; the rest ended in command discipline,
+        training or instructions. All value axes start at zero.
+      </p>
+      <p>
+        <strong>Transformations, stated plainly.</strong> We grouped the board’s detailed findings (for example “Substantiated (Command Discipline A)”)
+        into three headline findings by their first word, and grouped the bracketed part into four outcome families for View C. View B uses year
+        closed from 2002 to 2020; two earlier allegations are omitted and 2020 is partial.
+      </p>
+      <p>
+        <strong>What it shows.</strong> Overall, <span data-stat="subst_pct">…</span> of allegations in this subset were substantiated. The rate differs by type:
+        <span data-stat="aoa_pct">…</span> for Abuse of Authority against <span data-stat="force_pct">…</span> for Force (<span data-stat="force_n">…</span> allegations).
+        Year to year the rate bounces around a lot, and the intervals show most of that movement is within the noise.
+        Every value is reachable by hover, keyboard focus, or the data table under each chart, and the three colours were checked for
+        colour-blind separation.
+      </p>
+    </div>
   </section>
 
+  <!-- ============================ BLACK HAT ============================ -->
   <section id="blackhat">
-    <h2>Black Hat Visualization</h2>
-    <div id="chart-black"></div>
-    <p>Write-up: manipulative techniques used and how they distort perception (200–500 words).</p>
+    <h2>Black hat visualization <span class="badge black">Persuasive · selective · misleading</span></h2>
+    <p>
+      The story we want to sell: <em>“The NYPD is cracking down on misconduct.”</em> Every number below is real.
+      The picture is built to leave a false impression. Use the switches to undo each trick and watch what it was hiding.
+    </p>
+
+    <article class="card bh-card" id="bh-card" aria-labelledby="bh-title">
+      <h3 id="bh-title" class="bh-headline">NYPD Cracks Down: Misconduct Findings Up 9× Since 2008</h3>
+      <p class="sub" id="bh-sub">Share of civilian complaints upheld by the review board</p>
+      <svg id="bh-svg" class="chart" role="img" aria-labelledby="bh-title bh-desc"></svg>
+      <p id="bh-desc" class="sr-only">Bar chart claiming misconduct findings rose sharply from 2008 to 2015. This chart is deliberately misleading; use the switches below to see why.</p>
+      <p class="foot" id="bh-foot" hidden>
+        Source: ProPublica / CCRB civilian complaints, 856-allegation subset (mostly Brooklyn commands, not a random sample). Rate = substantiated allegations ÷ allegations closed that year.
+      </p>
+    </article>
+
+    <fieldset class="switches">
+      <legend>Undo the tricks</legend>
+      <div class="switch-row">
+        <label><input type="checkbox" id="bh-range"><span>Restore all years (2002–2020)<small>Trick 1: cherry-picked window</small></span></label>
+        <label><input type="checkbox" id="bh-zero"><span>Start the axis at zero<small>Trick 2: truncated axis</small></span></label>
+        <label><input type="checkbox" id="bh-n"><span>Show sample sizes<small>Trick 3: hidden denominators</small></span></label>
+        <label><input type="checkbox" id="bh-title-fix"><span>Use an honest title, label and source<small>Trick 4: loaded language, plus the arrow and shout</small></span></label>
+      </div>
+      <button class="primary" id="bh-undo" type="button">Toggle all four</button>
+      <p class="bh-note" id="bh-note" role="status" aria-live="polite"></p>
+    </fieldset>
+
+    <div class="prose">
+      <h3>Write-up: black hat</h3>
+      <p>
+        <strong>The manipulation.</strong> We start from a true fact: the share of allegations substantiated was
+        <span data-stat="rate08">…</span> for cases closed in 2008 and <span data-stat="rate15">…</span> for 2015. Then we make it look like
+        a trend and a policy result.
+      </p>
+      <p>
+        <strong>1. Cherry-picked window.</strong> The chart covers 2008–2015 only, starting at the lowest year and ending at the highest.
+        In 2005 the rate was already about <span data-stat="rate05">…</span>. After 2015 it fell back to <span data-stat="rate16">…</span> in 2016 and
+        <span data-stat="rate18">…</span> in 2018. Those years are simply left off.
+      </p>
+      <p>
+        <strong>2. Truncated y-axis.</strong> The baseline sits at 5% and is never labelled, and the bars are drawn up from it. The 2008 bar is
+        almost invisible and the 2015 bar towers over it, so the picture shows a jump of well over 100× while the real ratio is
+        <span data-stat="ratio">…</span>. Bar length is supposed to mean value; here it does not.
+      </p>
+      <p>
+        <strong>3. Hidden sample sizes.</strong> The 2008 rate rests on only <span data-stat="n08">…</span> allegations (exactly <span data-stat="k08">…</span> of them substantiated) and 2015 on
+        <span data-stat="n15">…</span>. A rate from a handful of cases is very noisy, but with no <em>n</em> and no interval the reader cannot tell.
+      </p>
+      <p>
+        <strong>4. Loaded language and framing.</strong> “Cracks down”, “upheld” and “cases” suggest enforcement and results. The data
+        counts <em>allegations</em>, and “substantiated” covers everything from formal charges down to instructions or training (see White hat View C).
+        The headline multiplies two rates and presents the ratio as a policy outcome with no causal evidence behind it.
+      </p>
+      <p>
+        <strong>5. Emphasis and framing.</strong> A tall, narrow frame steepens the slope, the final bar is darker, a red arrow and “×” callout
+        direct the eye, and no source or caveat is shown. All of this stops once you tick the last switch. The same data supports a
+        very different, much more cautious message.
+      </p>
+    </div>
   </section>
 
-  <section id="references"><h2>References and Data Sources</h2></section>
-  <section id="process"><h2>Development Process</h2>
-    <p>Team roles, people-hours, what took the most time.</p>
+  <!-- ============================ REFERENCES ============================ -->
+  <section id="references" class="prose">
+    <h2>References and data sources</h2>
+    <ul class="refs">
+      <li><strong>Data:</strong> ProPublica, <em>Civilian Complaints Against New York City Police Officers</em>, compiled from records of the NYC Civilian Complaint Review Board (CCRB). <a href="https://www.propublica.org/datastore/dataset/civilian-complaints-against-new-york-city-police-officers">propublica.org/datastore</a>. <span class="todo">[TEAM: confirm the URL and add the date you downloaded the file.]</span> We used a non-random 856-allegation subset (see “The data”).</li>
+      <li><strong>Library:</strong> Bostock, M., Ogievetsky, V., &amp; Heer, J. (2011). D³: Data-Driven Documents. <em>IEEE TVCG</em>, 17(12). D3 v7, <a href="https://d3js.org">d3js.org</a>, bundled in <code>lib/</code>.</li>
+      <li><strong>Statistics:</strong> Wilson, E. B. (1927). Probable inference, the law of succession, and statistical inference. <em>JASA</em>, 22(158). Used for the 95% intervals in White hat View B.</li>
+      <li><strong>Design background:</strong> Pandey, A. V., Rall, K., Satterthwaite, M. L., Nov, O., &amp; Bertini, E. (2015). How deceptive are deceptive visualizations? An empirical analysis of common distortion techniques. <em>CHI ’15</em>. Tufte, E. (2001). <em>The Visual Display of Quantitative Information</em> (graphical integrity, the “lie factor”). Huff, D. (1954). <em>How to Lie with Statistics</em>.</li>
+      <li><strong>Code adapted from examples:</strong> none copied. <span class="todo">[TEAM: list any D3 gallery or Observable examples you looked at.]</span></li>
+    </ul>
   </section>
-  <section id="ai"><h2>AI Usage</h2></section>
-  <section id="extra"><h2>Extra Credit Features</h2></section>
 
-  <script src="whitehat.js"></script>
-  <script src="blackhat.js"></script>
+  <!-- ============================ PROCESS ============================ -->
+  <section id="process" class="prose">
+    <h2>Development process</h2>
+    <p><span class="todo">[TEAM: fill in the bracketed parts. Keep it honest; the commit history will be checked against it.]</span></p>
+    <h3>Who did what</h3>
+    <ul>
+      <li>[Name]: data cleaning and profiling, white hat charts</li>
+      <li>[Name]: black hat chart and “undo the tricks” switches</li>
+      <li>[Name]: page layout, write-ups, deployment, demo video</li>
+    </ul>
+    <h3>Time spent</h3>
+    <p>Roughly <span class="todo">[N]</span> people-hours in total (<span class="todo">[breakdown by person]</span>).</p>
+    <h3>What took the most time</h3>
+    <p><span class="todo">[e.g. working out that rows are allegations, not complaints; deciding which black hat tricks were subtle enough to be convincing; making the interval chart readable.]</span></p>
+    <h3>Commentary</h3>
+    <p>Things we learned while building: our copy of the data is only a subset, which forced us to make the limits visible in the white hat version.
+       <span class="todo">[Add your own observations.]</span></p>
+  </section>
+
+  <!-- ============================ AI USAGE ============================ -->
+  <section id="ai" class="prose">
+    <h2>AI usage</h2>
+    <p><span class="todo">[TEAM: edit this so it matches exactly what you did.]</span></p>
+    <p>
+      We used Claude (Anthropic) as a coding and drafting assistant. It profiled the CSV, proposed the two chart concepts, wrote the first versions of
+      the D3 code (<code>common.js</code>, <code>whitehat.js</code>, <code>blackhat.js</code>), the page layout and CSS, and first drafts of the write-ups.
+      It also suggested the “undo the tricks” switches and the confidence-interval and sample-size design. Our team chose the dataset and story, checked
+      the numbers against the raw CSV, edited the text, and tested the page in the browser.
+      Parts we rewrote or rejected: <span class="todo">[list them]</span>.
+    </p>
+  </section>
+
+  <!-- ============================ EXTRA CREDIT ============================ -->
+  <section id="extra" class="prose">
+    <h2>Extra credit features</h2>
+    <ul>
+      <li>
+        <strong>“Undo the tricks” switches (black hat).</strong> Four independent checkboxes reverse each manipulation (window, axis, hidden sample sizes, title/label/source)
+        with animated transitions and a plain-language note on what changed. This goes beyond showing a deceptive chart: the reader can take it apart and see
+        each distortion’s individual effect.
+      </li>
+      <li>
+        <strong>Uncertainty and sample size in the white hat view.</strong> Wilson 95% intervals, hollow markers for small samples, and an aligned sample-size strip, so the
+        honest chart also shows how much the data can support.
+      </li>
+      <li>
+        <strong>Accessibility.</strong> Hover and keyboard-focus tooltips, a data table for every white hat chart, a colour palette checked for colour-blind separation, and reduced-motion support.
+      </li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">White Hat / Black Hat · Assignment 2 · Data: ProPublica / CCRB (subset).</div>
+</footer>
+
+<script src="lib/d3.v7.min.js"></script>
+<script src="common.js"></script>
+<script src="whitehat.js"></script>
+<script src="blackhat.js"></script>
+<script>
+  NYPD.load()
+    .then(function (rows) {
+      var stats = NYPD.fillStats(rows);
+      drawWhiteHat(rows);
+      drawBlackHat(rows, stats);
+    })
+    .catch(function (err) {
+      var box = document.getElementById("load-error");
+      box.hidden = false;
+      box.textContent = "Could not load data/complaints.csv. If you opened this file directly, run a local server " +
+        "(for example: python3 -m http.server) and visit http://localhost:8000. Details: " + err;
+    });
+</script>
 </body>
 </html>
